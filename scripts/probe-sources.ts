@@ -24,6 +24,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+// Auto-load .env (git-ignored) so CENSUS_API_KEY etc. are available locally.
+const ENV_FILE = join(ROOT, ".env");
+if (existsSync(ENV_FILE)) process.loadEnvFile(ENV_FILE);
 const CACHE_DIR = join(ROOT, ".cache", "probe");
 const OUT_JSON = join(ROOT, "docs", "source-probe-results.json");
 
@@ -243,51 +247,58 @@ async function probeSocrata(opts: {
 
 async function probeCensus(): Promise<ProbeResult> {
   const key = process.env.CENSUS_API_KEY;
-  // Vintage 2023 PEP; POP_2023 is the total resident population variable.
-  const vintage = "2023";
+  // Denominator for per-100k rates. NOTE: the simple PEP total-population
+  // endpoint (/pep/population) only publishes through Vintage 2021 in the API —
+  // 2022–2024 return 404. ACS 1-year is current (2024 confirmed) and covers all
+  // 50 states + DC + PR, so we use ACS1 `B01001_001E` (total population) as the
+  // primary denominator, with PEP Vintage 2021 as a documented fallback.
+  const year = "2024";
   const params: Record<string, string> = {
-    get: "NAME,POP_2023",
+    get: "NAME,B01001_001E",
     for: "state:*",
   };
   if (key) params.key = key;
   const url =
-    `https://api.census.gov/data/${vintage}/pep/population?` +
+    `https://api.census.gov/data/${year}/acs/acs1?` +
     Object.entries(params)
       .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
       .join("&");
 
   const res = await cachedFetch(url);
   const json = parseJson(res.body) as any[] | null;
-  const notes: string[] = [];
+  const notes: string[] = [
+    "PEP /pep/population caps at Vintage 2021 in the API; using ACS1 (current) instead.",
+    "ACS1 covers areas with pop >= 65k: all 50 states + DC + PR (not the small territories).",
+    "Population changes slowly — fetch once per year and cache.",
+  ];
   let verdict: Verdict = "needs-auth";
   let sample: unknown = null;
   let coverage = "unknown";
 
   if (Array.isArray(json) && json.length > 1) {
     verdict = "structured";
-    coverage = `${json.length - 1} states/territories (vintage ${vintage})`;
+    coverage = `${json.length - 1} states/DC/PR (ACS 1-year ${year})`;
     sample = { header: json[0], firstRow: json[1] };
   } else if (/Missing Key|valid <em>key/i.test(res.body)) {
-    notes.push(
-      "Endpoint is LIVE but requires a free API key (api.census.gov/data/key_signup.html). " +
-        "Set CENSUS_API_KEY to exercise it. Population changes annually — safe to fetch once and cache.",
+    notes.unshift(
+      "Requires a free API key (api.census.gov/data/key_signup.html); set CENSUS_API_KEY.",
     );
   } else {
-    notes.push(`Unexpected response (HTTP ${res.status}): ${res.body.slice(0, 120)}`);
+    notes.unshift(`Unexpected response (HTTP ${res.status}): ${res.body.slice(0, 120)}`);
   }
 
   return {
-    id: `census-pep-${vintage}`,
-    name: "Census Bureau Population Estimates (PEP)",
+    id: `census-acs1-${year}`,
+    name: "Census ACS 1-year population (denominator; PEP fallback)",
     category: "denominator",
-    url: `https://api.census.gov/data/${vintage}/pep/population`,
+    url: `https://api.census.gov/data/${year}/acs/acs1?get=NAME,B01001_001E&for=state:*`,
     format: "JSON array-of-arrays",
     verdict,
     httpStatus: res.status,
-    updateCadence: "Annual vintage release (Vintage 2023 latest confirmed here)",
+    updateCadence: "Annual (ACS 1-year, ~1yr lag)",
     dateCoverage: coverage,
     rowCount: coverage,
-    fields: ["NAME", "POP_<vintage>", "state (FIPS)"],
+    fields: ["NAME", "B01001_001E (total pop)", "state (FIPS)"],
     sampleRecord: sample,
     notes,
   };

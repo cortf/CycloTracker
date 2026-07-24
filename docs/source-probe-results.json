@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-24T15:51:37.109Z",
+  "generatedAt": "2026-07-24T17:03:18.400Z",
   "results": [
     {
       "id": "x9gk-5huc",
@@ -326,24 +326,37 @@
       ]
     },
     {
-      "id": "census-pep-2023",
-      "name": "Census Bureau Population Estimates (PEP)",
+      "id": "census-acs1-2024",
+      "name": "Census ACS 1-year population (denominator; PEP fallback)",
       "category": "denominator",
-      "url": "https://api.census.gov/data/2023/pep/population",
+      "url": "https://api.census.gov/data/2024/acs/acs1?get=NAME,B01001_001E&for=state:*",
       "format": "JSON array-of-arrays",
-      "verdict": "needs-auth",
+      "verdict": "structured",
       "httpStatus": 200,
-      "updateCadence": "Annual vintage release (Vintage 2023 latest confirmed here)",
-      "dateCoverage": "unknown",
-      "rowCount": "unknown",
+      "updateCadence": "Annual (ACS 1-year, ~1yr lag)",
+      "dateCoverage": "52 states/DC/PR (ACS 1-year 2024)",
+      "rowCount": "52 states/DC/PR (ACS 1-year 2024)",
       "fields": [
         "NAME",
-        "POP_<vintage>",
+        "B01001_001E (total pop)",
         "state (FIPS)"
       ],
-      "sampleRecord": null,
+      "sampleRecord": {
+        "header": [
+          "NAME",
+          "B01001_001E",
+          "state"
+        ],
+        "firstRow": [
+          "Alabama",
+          "5157699",
+          "01"
+        ]
+      },
       "notes": [
-        "Endpoint is LIVE but requires a free API key (api.census.gov/data/key_signup.html). Set CENSUS_API_KEY to exercise it. Population changes annually — safe to fetch once and cache."
+        "PEP /pep/population caps at Vintage 2021 in the API; using ACS1 (current) instead.",
+        "ACS1 covers areas with pop >= 65k: all 50 states + DC + PR (not the small territories).",
+        "Population changes slowly — fetch once per year and cache."
       ]
     }
   ]

@@ -23,7 +23,7 @@ bodies are cached under `.cache/probe/` (git-ignored). Re-run with `npm run prob
 | 5 | CDC Cyclosporiasis outbreak pages | HTML (bot-protected) | 🟡 scrape | per-outbreak | 2018–present, prose | Defer — reference only |
 | 6 | State DOH ×6 (TX/FL/GA/NY/WI/IL) | HTML/PDF/dashboard | 🟡 scrape | Annual | none machine-readable | **Defer** — see §6 |
 | 7 | CSTE position statements | PDF/HTML | 🟡 scrape | as-adopted | n/a | Reference only (comparability) |
-| 8 | **Census PEP population** | JSON | 🔑 needs free key | Annual vintage | denominator | **Required for per-100k rates** |
+| 8 | **Census ACS1 population** | JSON | ✅ structured (key wired) | Annual | denominator, 52 rows | **Per-100k rates** |
 
 **Proposed for the initial build:** ingest **#1 (backbone)** + **#8 (denominator)**;
 attach **#4 (NORS)** for historical/outbreak-vehicle provenance. Everything else is
@@ -189,18 +189,21 @@ under-reports. (The per-source adapter Skill makes adding one later cheap.)
 
 ---
 
-## 8. Census Bureau Population Estimates (PEP) — 🔑 **denominator, needs free key**
+## 8. Census population (denominator) — ✅ **resolved: ACS 1-year, key wired**
 
-- **URL:** `https://api.census.gov/data/2023/pep/population?get=NAME,POP_2023&for=state:*`
-- **Format:** JSON array-of-arrays (`[["NAME","POP_2023","state"], ...]`).
-- **Status:** Endpoint is **live**, but now returns a **"Missing Key"** page —
-  a **free API key is required** (sign up: https://api.census.gov/data/key_signup.html).
-  Store as `CENSUS_API_KEY` in `.env` (git-ignored); the probe honors it.
-- **Cadence:** Annual vintage. Vintage **2023** confirmed reachable here; we'll pin
-  the latest available vintage at ingest time.
-- **Use:** the **cases-per-100k** toggle (Step 6). Population moves slowly — fetch
-  once, cache to disk, refresh yearly. Denominator only; never a case source.
-- **Action needed:** provide a Census API key (or approve me signing up for one).
+- **Chosen endpoint:** `https://api.census.gov/data/2024/acs/acs1?get=NAME,B01001_001E&for=state:*`
+- **Format:** JSON array-of-arrays (`[["NAME","B01001_001E","state"], ...]`).
+- **Verified (2026-07-24, with key):** HTTP 200, **52 rows = 50 states + DC + PR**.
+  Sample: `["Alabama","5157699","01"]`.
+- **Why ACS1, not PEP as the brief suggested:** the plain PEP total-population API
+  (`/pep/population`) **only publishes through Vintage 2021** — 2022/2023/2024 all
+  return 404. ACS 1-year `B01001_001E` (total population) is **current (2024
+  confirmed)** and covers all 50 states + DC + PR. **PEP Vintage 2021** remains a
+  documented fallback if we ever need the small territories (Guam/USVI/AS/MP),
+  which ACS1 (pop ≥ 65k) omits.
+- **Key:** free API key **provided and stored in `.env`** (git-ignored); the probe
+  auto-loads it. Denominator only, fetched once/year and cached — never a case source.
+- **Cadence:** Annual (ACS 1-year, ~1-year lag). Fine for a slow-moving denominator.
 
 ---
 
@@ -219,18 +222,21 @@ under-reports. (The per-source adapter Skill makes adding one later cheap.)
 
 ---
 
-## <a id="decisions-for-you"></a>Decisions for you (checkpoint)
+## <a id="decisions-for-you"></a>Decisions — RESOLVED (2026-07-24)
 
-1. **Census API key** — okay to depend on Census PEP for per-100k rates? If yes,
-   please supply a `CENSUS_API_KEY` (or approve me registering one). Without it we
-   ship **counts only** initially and add rates later.
-2. **State DOH sources** — confirm we **defer all six** for now (recommended), and
-   treat NNDSS weekly as the single source of truth for per-state counts, revisiting
-   states only if the Step-4 coverage report exposes a real gap.
+1. **Denominator / Census key** — ✅ Key provided and wired into `.env`. Using
+   **ACS 1-year** (`B01001_001E`) as the denominator since PEP's population API
+   stops at Vintage 2021 (see §8). Per-100k rates are in scope from the start.
+2. **State DOH sources** — ✅ **Defer all six.** NNDSS weekly is the single source
+   of truth for per-state counts. The per-source adapter Skill (Claude-native
+   requirement) makes adding any of them back cheap if Step-4 coverage exposes a gap.
 
-Secondary confirmations (assumed unless you object): NORS ingested for
-historical/outbreak context only; FDA CORE + CDC/CSTE pages are reference-only, not
-ingested.
+Secondary (confirmed): NORS ingested for historical/outbreak context only, in a
+separate table; FDA CORE + CDC/CSTE pages are reference-only, not ingested.
+
+**Sources that make the cut for the initial build:** #1 NNDSS weekly (case
+backbone) · #8 ACS1 population (denominator) · #4 NORS (separate outbreak/context
+table). Everything else deferred but easy to add later.
 
 ---
 
