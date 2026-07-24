@@ -50,4 +50,45 @@ sources for now; make sources easy to add back later.
 
 ---
 
-<!-- Add Step 2 here once schema & storage are built. -->
+## Step 2 — Schema & Storage ✅
+
+**Goal:** design the SQLite schema, wire up migrations, and seed the geography.
+
+**Choice:** **Drizzle ORM** + better-sqlite3 (your call) — schema is defined in
+TypeScript ([`db/schema.ts`](db/schema.ts)) as the single source of truth; SQL
+migrations are generated from it; queries are type-safe into the Step 5 API.
+
+**Tables** (see [`db/schema.ts`](db/schema.ts)):
+- `states` — geography dimension, **seeded**: 50 states + DC + 5 territories with
+  2-digit FIPS. `is_mappable` flags the 51 the Albers map draws (territories stored, not drawn).
+- `sources` — registry of every source with a `precedence` (state DOH > NNDSS
+  annual > NNDSS weekly) and `enabled` flag. Seeded: 3 enabled, 10 deferred.
+- `raw_ingests` — **append-only** raw payloads (+ fetch time, URL, http status,
+  content hash). Normalization re-runs from here without re-fetching.
+- `case_records` — **normalized** counts, one row per (source, state, year, week,
+  count_type). `status` makes **zero vs missing** explicit: `zero` (count 0, flag
+  `-`) vs `missing` (count NULL, flag `U`). Every row carries `source_id` +
+  `ingest_id` for full provenance. A unique natural key makes re-normalizing idempotent.
+- `state_population` — denominator (ACS1) for per-100k rates. Never a case source.
+
+**Why these choices:** the brief's hard constraints drove the shape — traceability
+(`source_id`/`ingest_id` everywhere), never-impute (NULL count ≠ 0, enforced by
+`status`), and idempotent re-runs (unique natural key). FKs are enforced (`PRAGMA
+foreign_keys=ON`).
+
+**Verified:** migration applies; seed loads 56 states + 13 sources; case tables
+start **empty**; FK rejects a bad FIPS; the natural key blocks duplicate inserts;
+zero-vs-missing round-trips correctly. `npm run typecheck` passes.
+
+**Commands:** `npm run db:generate` (SQL from schema) · `db:migrate` · `db:seed` ·
+`db:summary` (inspect) · `db:studio` (browse). DB lives at `data/cyclotracker.db`
+(git-ignored); migrations are committed.
+
+**Known note:** `npm audit` flags esbuild (dev-only, via drizzle-kit; affects only
+esbuild's dev server, which we never run). Left as-is to avoid a breaking bump.
+
+**Verify:** `npm run db:seed && npm run db:summary`.
+
+---
+
+<!-- Add Step 3 here once ingestion is built. -->
