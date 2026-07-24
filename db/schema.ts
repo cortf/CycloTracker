@@ -168,8 +168,40 @@ export const statePopulation = sqliteTable(
   ],
 );
 
+/**
+ * outbreak_records — CDC NORS outbreak-level data (illnesses + food vehicle).
+ * A DIFFERENT UNIT from case_records (outbreaks, not surveillance case counts) —
+ * kept separate and never summed into case totals. Used for provenance/context.
+ * `dedupeKey` (hash of salient fields) gives idempotency: NORS has no stable
+ * outbreak id in this dataset. `stateFips` is nullable (multistate/unknown).
+ */
+export const outbreakRecords = sqliteTable("outbreak_records", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  sourceId: integer("source_id")
+    .notNull()
+    .references(() => sources.id),
+  ingestId: integer("ingest_id").references(() => rawIngests.id),
+  dedupeKey: text("dedupe_key").notNull().unique(),
+  stateFips: text("state_fips").references(() => states.fips),
+  stateName: text("state_name").notNull(),
+  year: integer("year").notNull(),
+  month: integer("month"),
+  etiology: text("etiology"),
+  etiologyStatus: text("etiology_status"),
+  primaryMode: text("primary_mode"),
+  setting: text("setting"),
+  illnesses: integer("illnesses"),
+  hospitalizations: integer("hospitalizations"),
+  deaths: integer("deaths"),
+  foodVehicle: text("food_vehicle"),
+  foodContaminatedIngredient: text("food_contaminated_ingredient"),
+  ifsacCategory: text("ifsac_category"),
+  createdAt: createdAt(),
+});
+
 // Handy inferred types for the rest of the app.
 export type State = typeof states.$inferSelect;
+export type OutbreakRecord = typeof outbreakRecords.$inferSelect;
 export type Source = typeof sources.$inferSelect;
 export type RawIngest = typeof rawIngests.$inferSelect;
 export type CaseRecord = typeof caseRecords.$inferSelect;

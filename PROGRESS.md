@@ -91,4 +91,45 @@ esbuild's dev server, which we never run). Left as-is to avoid a breaking bump.
 
 ---
 
-<!-- Add Step 3 here once ingestion is built. -->
+## Step 3 — Ingestion Pipeline ✅
+
+**Goal:** pull each source into the DB via a common `fetch() → normalize() →
+persist()` flow, with raw payloads stored untouched, normalization separate and
+re-runnable, and re-runs that never duplicate rows.
+
+**Shape** (under [scripts/ingest/](scripts/ingest/)):
+- One adapter per source in `sources/`. Each has a **pure** `*.normalize.ts`
+  (no DB — that's what the tests exercise) + a thin adapter wiring fetch/persist.
+- `http.ts` — disk-cached fetch (`.cache/ingest/`) with retries + 429 backoff, so
+  dev doesn't hammer the APIs.
+- `resolve-state.ts` — the riskiest step: reporting-area → FIPS. Handles casing,
+  **NY + NYC → one FIPS 36 (summed)**, NMI aliases, and **excludes** census
+  regions/national aggregates. Unknown areas are surfaced loudly, **never** given a
+  wrong FIPS or silently dropped.
+- `persist.ts` — append-only raw storage (dedupes identical payloads by hash) +
+  idempotent upserts (unique natural keys) into the normalized tables.
+- `run.ts` — the runner. `npm run ingest` (full) · `npm run normalize`
+  (re-normalize from stored raw, **no network**) · `npm run ingest -- <key>`.
+
+**What it does per source:**
+- **nndss-weekly → case_records:** all cyclosporiasis rows, all years. Produces two
+  rows per state-week: `weekly` (m1) and `cumulative_ytd` (m3). Flags → status:
+  `-`=zero, `U`=missing, `N/NN`=not_notifiable. **Zero and missing stay distinct.**
+- **census-acs1 → state_population:** ACS1 for 2022–2024 (one fetch/year) for rates.
+- **nors → outbreak_records:** cyclospora outbreaks; Multistate kept with null FIPS.
+
+**Verified (live run):** case_records **26,544** · state_population **156**
+(52×3yr) · outbreak_records **174**. NY 2026 wk28 weekly = **70** (26+44 merged).
+All 51 mappable jurisdictions have data. **Every case number carries source_id +
+ingest_id** (0 gaps). Re-running ingest **and** normalize-only leaves totals
+unchanged (idempotent). **27 unit tests pass** (`npm test`); typecheck passes.
+
+**Why it looks like this:** the brief's constraints are load-bearing — raw-first +
+separate normalize (re-runnable, auditable), pure tested normalizers (where silent
+corruption hides), full provenance, never-impute (NULL ≠ 0), idempotent upserts.
+
+**Verify:** `npm run ingest` then `npm run db:summary`; `npm test`.
+
+---
+
+<!-- Add Step 4 here once normalization/coverage is built. -->
