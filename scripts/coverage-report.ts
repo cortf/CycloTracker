@@ -11,42 +11,10 @@ import { fileURLToPath } from "node:url";
 import { sqlite } from "../db/client";
 import { summarizeWindow, type Classification } from "../lib/coverage";
 import { formatYearWeek, recentWindow, WINDOW_WEEKS, windowKeySet, yearWeekKey } from "../lib/mmwr";
-import { reconcilePoint, type Candidate, type Reconciled } from "../lib/reconcile";
+import { reconcileSeries, type ReconPoint } from "../lib/model";
 import { getCaseCandidates, getPopulationByStateYear, getStates } from "../lib/queries";
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "docs", "COVERAGE.md");
-
-type ReconPoint = Reconciled & { year: number; week: number };
-/** Group candidates by (stateFips, year, week) for one countType, then reconcile. */
-function reconcileSeries(
-  candidates: ReturnType<typeof getCaseCandidates>,
-  countType: "weekly" | "cumulative_ytd",
-): Map<string, Map<number, ReconPoint>> {
-  const grouped = new Map<string, Candidate[] & { year?: number; week?: number }>();
-  const meta = new Map<string, { stateFips: string; year: number; week: number }>();
-  for (const c of candidates) {
-    if (c.countType !== countType) continue;
-    const key = `${c.stateFips}|${c.year}|${c.week}`;
-    if (!grouped.has(key)) {
-      grouped.set(key, [] as Candidate[]);
-      meta.set(key, { stateFips: c.stateFips, year: c.year, week: c.week });
-    }
-    grouped.get(key)!.push({
-      sourceKey: c.sourceKey,
-      precedence: c.precedence,
-      caseCount: c.caseCount,
-      status: c.status,
-    });
-  }
-  const out = new Map<string, Map<number, ReconPoint>>();
-  for (const [key, cands] of grouped) {
-    const m = meta.get(key)!;
-    const rec = reconcilePoint(cands);
-    if (!out.has(m.stateFips)) out.set(m.stateFips, new Map());
-    out.get(m.stateFips)!.set(yearWeekKey(m.year, m.week), { ...rec, year: m.year, week: m.week });
-  }
-  return out;
-}
 
 const CLASS_LABEL: Record<Classification, string> = {
   "has-data": "✅ has-data",

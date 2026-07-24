@@ -7,13 +7,18 @@ node_modules/
 # local data store (built by ingestion, not committed)
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
 *.sqlite
 data/*.db
+data/*.db-*
 
 # next.js / build output
 .next/
 out/
 dist/
+next-env.d.ts
+.turbo/
 
 # env & secrets (e.g. CENSUS_API_KEY)
 .env
@@ -22,3 +27,4 @@ dist/
 # os / editor
 .DS_Store
 *.log
+*.tsbuildinfo

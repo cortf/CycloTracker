@@ -171,4 +171,40 @@ guards all dirs). 43 unit tests pass; typecheck clean.
 
 ---
 
-<!-- Add Step 5 here once the API layer is built. -->
+## Step 5 — API Layer ✅
+
+**Goal:** typed, zod-validated Next.js endpoints backed by the Step-4 reconciliation.
+
+**Scaffolding:** first Next.js (App Router, Next 16 / React 19) setup —
+[app/](app/) with a placeholder home page (map lands in Step 6), `next.config.ts`
+(better-sqlite3 marked as a server-external native module), and a tsconfig that
+serves **both** the Next app and the existing node scripts. Everything before this
+stays framework-agnostic (`lib/` + scripts), so the API just wires HTTP to `lib/`.
+
+**Shape:** thin route handlers (validate → service → JSON); logic lives in
+testable `lib/api/` services + `lib/model.ts` (the shared reconciled model, now
+also used by the coverage report — no duplicate reconcile logic). zod validates
+**inputs** and **parses outputs** so a malformed payload fails here, not in the client.
+
+**Endpoints:**
+- `GET /api/cases?year=&metric=count|rate` — per-state totals. No `year` = the
+  3-month window; `year=2025` = that year's cumulative. `no-data` states return
+  `value: null` (so the map hatches them, never a "0").
+- `GET /api/states/[fips]` — drill-down: window summary, full weekly series,
+  per-year totals, population, **NORS outbreak context**, contributing sources.
+- `GET /api/sources` — registry + provenance (records + last-fetch time per source).
+
+**Verified live (`npm run dev`, curled each):** window total 3,920 matches the
+coverage report; Ohio drill-down shows the week-28 spike (1,230) and 7 NORS
+outbreaks; `/api/sources` lists 3 enabled + 10 deferred with live counts. Error
+paths return 404 (no such state) / 400 (bad FIPS, out-of-range/non-numeric year).
+**56 unit tests** (schemas, rates, reconcile, coverage, mmwr, normalizers) pass;
+typecheck clean.
+
+**Commands:** `npm run dev` (localhost:3000) · `build` · `start`.
+
+**Verify:** `npm run dev`, then open `/api/cases`, `/api/states/39`, `/api/sources`.
+
+---
+
+<!-- Add Step 6 here once the map is built. -->
