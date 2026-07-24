@@ -207,4 +207,37 @@ typecheck clean.
 
 ---
 
-<!-- Add Step 6 here once the map is built. -->
+## Step 6 — Proportional Symbol Map ✅
+
+**Goal:** the interactive map — circles sized by case count, honest about gaps.
+
+**Geometry:** [lib/geo.ts](lib/geo.ts) projects the us-atlas states TopoJSON
+through **Albers USA** (fitted to 975×610, AK/HI insets, territories dropped) into
+per-state SVG paths + centroids, computed server-side so the client ships no d3-geo.
+
+**The map** ([components/](components/), all client):
+- **Circles at centroids, radius = √value** so **area ∝ cases** (never radius —
+  enforced by a unit test). One accent-blue hue; size carries magnitude.
+- **no-data states (ID/MS/PA) get a 45° hatch fill**; zero states are plain (no
+  circle). Distinct by construction — a gap never reads as a 0. (Your Step-4 choice.)
+- **Nested-circle legend** with three reference values, on the same √ scale.
+- **Count / Per-100k toggle** and a **year selector** (Last 3 months + 2022–2026),
+  refetching `/api/cases`.
+- **Hover + keyboard-focus tooltip** (state, count, rate, contributing sources);
+  every symbol is focusable with an ARIA label; a generous invisible hit target.
+- **Overlap handling:** a deterministic force **dodge** separates the dense
+  Northeast, with **leader lines** back to displaced states.
+- **Accessibility:** `<details>` **data-table fallback** listing all 51 states
+  (count/rate/status/sources), `aria-live` summary, focus rings, SR labels.
+  Light **and** dark themes (palette from the dataviz skill).
+
+**Verified:** SSR renders all elements (national total 3,920, PA hatched); no
+hydration warnings; a headless screenshot shows OH/MI dominant, ID/MS/PA hatched,
+insets + legend correct; **`next build` passes**; 62 unit tests + typecheck green.
+
+**Verify:** `npm run dev` → [localhost:3000](http://localhost:3000); toggle
+metric/year, hover/Tab through symbols, open the data table.
+
+---
+
+<!-- Add Step 7 here once provenance/polish is built. -->

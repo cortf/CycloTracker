@@ -47,6 +47,16 @@ export function getStates() {
   return db.select().from(states).all();
 }
 
+/** Distinct years present in case data, ascending — powers the year selector. */
+export function getAvailableYears(): number[] {
+  return db
+    .selectDistinct({ year: caseRecords.year })
+    .from(caseRecords)
+    .orderBy(caseRecords.year)
+    .all()
+    .map((r) => r.year);
+}
+
 export function getStateByFips(fips: string) {
   return db.select().from(states).where(eq(states.fips, fips)).get();
 }
