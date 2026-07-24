@@ -1,0 +1,19 @@
+{
+  "name": "cyclotracker",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Visualizes reported Cyclospora cayetanensis infections by U.S. state on a proportional symbol map.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "probe": "tsx scripts/probe-sources.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

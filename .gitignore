@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# cached raw source fetches (dev should not hammer public APIs; regenerate locally)
+.cache/
+
+# local data store (built by ingestion, not committed)
+*.db
+*.db-journal
+*.sqlite
+data/*.db
+
+# next.js / build output
+.next/
+out/
+dist/
+
+# env & secrets (e.g. CENSUS_API_KEY)
+.env
+.env.local
+
+# os / editor
+.DS_Store
+*.log

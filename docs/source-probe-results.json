@@ -1,0 +1,350 @@
+{
+  "generatedAt": "2026-07-24T15:51:37.109Z",
+  "results": [
+    {
+      "id": "x9gk-5huc",
+      "name": "NNDSS Weekly Data",
+      "category": "primary",
+      "url": "https://data.cdc.gov/resource/x9gk-5huc.json",
+      "format": "Socrata SODA 2.1 JSON (also CSV/GeoJSON)",
+      "verdict": "structured",
+      "httpStatus": 200,
+      "updateCadence": "Weekly (MMWR week), typically Tue/Wed for the prior week; rows updated 2026-07-22",
+      "dateCoverage": "2022–2026",
+      "rowCount": "16590 Cyclospora rows",
+      "fields": [
+        "states",
+        "year",
+        "week",
+        "label",
+        "m1",
+        "m1_flag",
+        "m2",
+        "m2_flag",
+        "m3",
+        "m3_flag",
+        "m4",
+        "m4_flag",
+        "location1",
+        "location2",
+        "sort_order",
+        "geocode"
+      ],
+      "sampleRecord": {
+        "states": "U.S. Residents",
+        "year": "2026",
+        "week": "1",
+        "label": "Cyclosporiasis",
+        "m1": "3.0",
+        "m2": "470.0",
+        "m3": "3.0",
+        "m4": "4.0",
+        "location2": "U.S. Residents",
+        "sort_order": "20260101891"
+      },
+      "notes": [
+        "m1=current week, m2=prev 52wk max, m3=cumulative YTD current year, m4=cumulative YTD prior year.",
+        "*_flag columns: '-' = 0 reported, 'N'/'NN' = not notifiable, 'U' = unavailable, 'NC' = not calculated.",
+        "`states` mixes 50 states + DC + territories + census regions + national totals, and casing varies by era — filter/normalize carefully.",
+        "No FIPS column; join state name → FIPS during normalization.",
+        "Attribution: Office of Public Health Data, Surveillance, and Technology, Centers for Disease Control and Prevention",
+        "License: see portal terms",
+        "Distinct `states` values: 140"
+      ]
+    },
+    {
+      "id": "nndss-annual",
+      "name": "CDC NNDSS Annual Summary Tables",
+      "category": "primary",
+      "url": "https://www.cdc.gov/nndss/data-statistics/index.html",
+      "format": "MMWR HTML/CSV + historical Socrata 'NNDSS Table' datasets (frozen)",
+      "verdict": "structured",
+      "httpStatus": null,
+      "updateCadence": "Annual (finalized ~2 years after the reporting year)",
+      "dateCoverage": "Historical baseline",
+      "rowCount": "n/a",
+      "fields": [
+        "reporting_area",
+        "disease",
+        "cum_cases",
+        "year"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "For our 3-month recency window this is redundant with x9gk-5huc's m3 cumulative-YTD column.",
+        "Keep only as an optional multi-year baseline; per-year 'NNDSS - Table ...' Socrata datasets are frozen snapshots."
+      ]
+    },
+    {
+      "id": "fda-core",
+      "name": "FDA CORE Outbreak Investigation Table",
+      "category": "primary",
+      "url": "https://www.fda.gov/food/outbreaks-foodborne-illness/investigations-foodborne-illness-outbreaks",
+      "format": "text/html; charset=UTF-8",
+      "verdict": "scrape-required",
+      "httpStatus": 200,
+      "updateCadence": "Updated as investigations progress (roughly weekly)",
+      "dateCoverage": "Active/recent FDA-led outbreaks; per-outbreak state distribution",
+      "rowCount": "n/a (unstructured page)",
+      "fields": [
+        "product",
+        "etiology",
+        "states affected",
+        "case count",
+        "status",
+        "dates"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "Table is client-rendered; per-outbreak detail (incl. state list) lives on individual advisory pages.",
+        "Outbreak-level, not surveillance case counts — a different unit from NNDSS.",
+        "22 `/media/<id>/download` asset links (per-item PDFs).",
+        "Static <table> present with <th> headers."
+      ]
+    },
+    {
+      "id": "5xkq-dg7x",
+      "name": "NORS",
+      "category": "primary",
+      "url": "https://data.cdc.gov/resource/5xkq-dg7x.json",
+      "format": "Socrata SODA 2.1 JSON (also CSV/GeoJSON)",
+      "verdict": "structured",
+      "httpStatus": 200,
+      "updateCadence": "Annual bulk refresh (multi-year lag); rows updated 2024-12-20",
+      "dateCoverage": "1990–2023",
+      "rowCount": "181 Cyclospora rows",
+      "fields": [
+        "year",
+        "month",
+        "state",
+        "primary_mode",
+        "etiology",
+        "serotype_or_genotype",
+        "etiology_status",
+        "setting",
+        "illnesses",
+        "hospitalizations",
+        "info_on_hospitalizations",
+        "deaths",
+        "info_on_deaths",
+        "food_vehicle",
+        "food_contaminated_ingredient",
+        "ifsac_category",
+        "water_exposure",
+        "water_type",
+        "animal_type"
+      ],
+      "sampleRecord": {
+        "year": "2023",
+        "month": "2",
+        "state": "Texas",
+        "primary_mode": "Food",
+        "etiology": "Cyclospora cayetanensis",
+        "etiology_status": "Confirmed",
+        "setting": "Grocery store/bakery/deli/convenience store",
+        "illnesses": "110",
+        "hospitalizations": "9",
+        "info_on_hospitalizations": "108"
+      },
+      "notes": [
+        "Outbreak-level records (illnesses/hospitalizations/deaths + food vehicle), NOT weekly surveillance counts.",
+        "Lags ~2 years — useful for historical context & vehicle attribution, not the 3-month window.",
+        "Attribution: Centers for Disease Control and Prevention",
+        "License: Public Domain U.S. Government",
+        "Distinct `state` values: 36"
+      ]
+    },
+    {
+      "id": "cdc-cyclo-outbreaks",
+      "name": "CDC Cyclosporiasis Outbreak Investigation pages",
+      "category": "primary",
+      "url": "https://www.cdc.gov/cyclosporiasis/outbreaks/index.html",
+      "format": "text/html",
+      "verdict": "scrape-required",
+      "httpStatus": 200,
+      "updateCadence": "Per-outbreak / annual",
+      "dateCoverage": "Domestically acquired outbreak case counts, 2018–present",
+      "rowCount": "n/a (unstructured page)",
+      "fields": [
+        "year",
+        "case count",
+        "linked vehicle",
+        "states (in narrative)"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "Akamai bot protection returns intermittent 403s — unreliable for automated fetch.",
+        "State breakdowns are in prose, not a machine-readable table."
+      ]
+    },
+    {
+      "id": "tx-dshs",
+      "name": "Texas DSHS Notifiable Conditions",
+      "category": "secondary",
+      "url": "https://www.dshs.texas.gov/notifiable-conditions",
+      "format": "text/html; charset=UTF-8",
+      "verdict": "scrape-required",
+      "httpStatus": 200,
+      "updateCadence": "Annual reports (PDF/HTML)",
+      "dateCoverage": "TX statewide notifiable-condition counts",
+      "rowCount": "n/a (unstructured page)",
+      "fields": [
+        "condition",
+        "year",
+        "count"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "No static <table>; data appears client-rendered (needs headless browser)."
+      ]
+    },
+    {
+      "id": "fl-charts",
+      "name": "Florida FLHealthCHARTS",
+      "category": "secondary",
+      "url": "https://www.flhealthcharts.gov/ChartsReports/rdPage.aspx?rdReport=NonVitalIndNoGrp.DataViewer",
+      "format": "text/html",
+      "verdict": "scrape-required",
+      "httpStatus": 200,
+      "updateCadence": "Annual",
+      "dateCoverage": "FL county/state reportable diseases",
+      "rowCount": "n/a (unstructured page)",
+      "fields": [
+        "condition",
+        "county",
+        "year",
+        "count"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "ASP.NET dashboard (rdPage.aspx) — requires session/form POST; low scrape feasibility.",
+        "Static <table> present with <th> headers."
+      ]
+    },
+    {
+      "id": "ga-oasis",
+      "name": "Georgia DPH OASIS",
+      "category": "secondary",
+      "url": "https://oasis.state.ga.us/",
+      "format": "text/html",
+      "verdict": "scrape-required",
+      "httpStatus": 200,
+      "updateCadence": "Annual",
+      "dateCoverage": "GA notifiable diseases via OASIS query tool",
+      "rowCount": "n/a (unstructured page)",
+      "fields": [
+        "condition",
+        "county",
+        "year",
+        "count"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "Interactive query tool — parameterized report generation; low scrape feasibility."
+      ]
+    },
+    {
+      "id": "ny-doh",
+      "name": "New York State DOH Communicable Disease",
+      "category": "secondary",
+      "url": "https://www.health.ny.gov/statistics/diseases/communicable/",
+      "format": "text/html",
+      "verdict": "scrape-required",
+      "httpStatus": 403,
+      "updateCadence": "Annual",
+      "dateCoverage": "NY reported notifiable diseases (Cyclospora not on the open-data SODA portal)",
+      "rowCount": "n/a (unstructured page)",
+      "fields": [
+        "condition",
+        "county",
+        "year",
+        "count"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "No cyclosporiasis dataset on health.data.ny.gov (verified 0 results); HTML/PDF only.",
+        "HTTP 403: bot-protected — inconsistent for automated fetch."
+      ]
+    },
+    {
+      "id": "wi-dhs",
+      "name": "Wisconsin DHS Cyclosporiasis",
+      "category": "secondary",
+      "url": "https://www.dhs.wisconsin.gov/disease/cyclosporiasis.htm",
+      "format": "text/html; charset=UTF-8",
+      "verdict": "scrape-required",
+      "httpStatus": 200,
+      "updateCadence": "Ad hoc",
+      "dateCoverage": "WI surveillance narrative",
+      "rowCount": "n/a (unstructured page)",
+      "fields": [
+        "narrative counts"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "No static <table>; data appears client-rendered (needs headless browser)."
+      ]
+    },
+    {
+      "id": "il-dph",
+      "name": "Illinois DPH Diseases A–Z",
+      "category": "secondary",
+      "url": "https://dph.illinois.gov/topics-services/diseases-and-conditions/diseases-a-z-list.html",
+      "format": "text/html;charset=utf-8",
+      "verdict": "scrape-required",
+      "httpStatus": 200,
+      "updateCadence": "Annual",
+      "dateCoverage": "IL reportable conditions",
+      "rowCount": "n/a (unstructured page)",
+      "fields": [
+        "condition",
+        "year",
+        "count"
+      ],
+      "sampleRecord": null,
+      "notes": []
+    },
+    {
+      "id": "cste-position",
+      "name": "CSTE Position Statements (case definitions)",
+      "category": "reference",
+      "url": "https://www.cste.org/page/PositionStatements",
+      "format": "PDF/HTML",
+      "verdict": "scrape-required",
+      "httpStatus": null,
+      "updateCadence": "As adopted (annual conference)",
+      "dateCoverage": "Definition changes affecting year-over-year comparability",
+      "rowCount": "n/a",
+      "fields": [
+        "condition",
+        "case definition",
+        "effective year"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "Context only — documents comparability caveats; never rendered as case data."
+      ]
+    },
+    {
+      "id": "census-pep-2023",
+      "name": "Census Bureau Population Estimates (PEP)",
+      "category": "denominator",
+      "url": "https://api.census.gov/data/2023/pep/population",
+      "format": "JSON array-of-arrays",
+      "verdict": "needs-auth",
+      "httpStatus": 200,
+      "updateCadence": "Annual vintage release (Vintage 2023 latest confirmed here)",
+      "dateCoverage": "unknown",
+      "rowCount": "unknown",
+      "fields": [
+        "NAME",
+        "POP_<vintage>",
+        "state (FIPS)"
+      ],
+      "sampleRecord": null,
+      "notes": [
+        "Endpoint is LIVE but requires a free API key (api.census.gov/data/key_signup.html). Set CENSUS_API_KEY to exercise it. Population changes annually — safe to fetch once and cache."
+      ]
+    }
+  ]
+}
