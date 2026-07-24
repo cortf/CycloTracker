@@ -13,5 +13,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["scripts/**/*.ts", "db/**/*.ts", "drizzle.config.ts"]
+  "include": ["scripts/**/*.ts", "db/**/*.ts", "lib/**/*.ts", "drizzle.config.ts"]
 }

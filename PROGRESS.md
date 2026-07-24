@@ -132,4 +132,43 @@ corruption hides), full provenance, never-impute (NULL ≠ 0), idempotent upsert
 
 ---
 
-<!-- Add Step 4 here once normalization/coverage is built. -->
+## Step 4 — Normalization & Coverage Report ✅
+
+**Goal:** a reconciliation layer (dedup + precedence conflict resolution +
+per-state totals) and a coverage report that separates "zero" from "no data"
+**before** any map is drawn.
+
+**Shape** (pure, tested logic in [lib/](lib/); report in
+[scripts/coverage-report.ts](scripts/coverage-report.ts)):
+- `lib/reconcile.ts` — for each (state, year, week) pick the value by source
+  **precedence** (state DOH > NNDSS annual > NNDSS weekly). Only sources with a
+  usable number can win; ties break toward the larger count (never hide cases);
+  disagreements set a `conflict` flag. Single source today, ready for more.
+- `lib/coverage.ts` — classify each state over the window: `has-data` (>0),
+  `zero` (reports summing to 0), `no-data` (**no** usable week — never shown as 0).
+- `lib/mmwr.ts` — the "past 3 months" = the latest 13 MMWR weeks present in data.
+- `lib/queries.ts` — DB reads (candidates + states + population), reused by Step 5.
+
+**Report** → [docs/COVERAGE.md](docs/COVERAGE.md) (`npm run coverage`): 3-month
+window, per-state totals + per-100k, the zero/no-data classification, a per-year
+matrix (year selector), and territories.
+
+**What it revealed (window 2026-W16 → W28):** 51 mappable — **33 has-data, 15
+zero, 3 no-data**. no-data = **ID, MS, PA**, which carry NNDSS flag `N` (not
+notifiable) every week — real "no data", not zero (verified against live rows).
+National 3-month total **3,920**, led by **Ohio 1,666 / Michigan 945** — the live
+2026 Midwest outbreak. 0 reconciliation conflicts.
+
+**Decision for the map (Step 6):** render `no-data` states in a distinct neutral
+style (hatched/grey, "no data"), never a zero-sized symbol; render `zero` as an
+explicit 0.
+
+**Also fixed:** added `lib/` to tsconfig and corrected a latent type error in the
+Step-3 resolve-state test (vitest doesn't type-check, so `npm run typecheck` now
+guards all dirs). 43 unit tests pass; typecheck clean.
+
+**Verify:** `npm run coverage` then open `docs/COVERAGE.md`; `npm test`.
+
+---
+
+<!-- Add Step 5 here once the API layer is built. -->

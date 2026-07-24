@@ -4,21 +4,21 @@ import { resolveReportingArea } from "../resolve-state";
 describe("resolveReportingArea", () => {
   it("maps states regardless of casing/whitespace", () => {
     expect(resolveReportingArea("Alabama")).toEqual({ kind: "state", fips: "01", canonicalName: "Alabama" });
-    expect(resolveReportingArea("ALABAMA").fips).toBe("01");
-    expect(resolveReportingArea("  California  ").fips).toBe("06");
+    expect(resolveReportingArea("ALABAMA")).toMatchObject({ fips: "01" });
+    expect(resolveReportingArea("  California  ")).toMatchObject({ fips: "06" });
   });
 
   it("maps DC and territories", () => {
-    expect(resolveReportingArea("District of Columbia").fips).toBe("11");
-    expect(resolveReportingArea("Puerto Rico").fips).toBe("72");
-    expect(resolveReportingArea("U.S. Virgin Islands").fips).toBe("78");
+    expect(resolveReportingArea("District of Columbia")).toMatchObject({ fips: "11" });
+    expect(resolveReportingArea("Puerto Rico")).toMatchObject({ fips: "72" });
+    expect(resolveReportingArea("U.S. Virgin Islands")).toMatchObject({ fips: "78" });
   });
 
   it("applies the two real aliases", () => {
-    expect(resolveReportingArea("New York City").fips).toBe("36"); // summed into NY
-    expect(resolveReportingArea("NEW YORK").fips).toBe("36");
-    expect(resolveReportingArea("Commonwealth of Northern Mariana Islands").fips).toBe("69");
-    expect(resolveReportingArea("Northern Mariana Islands").fips).toBe("69");
+    expect(resolveReportingArea("New York City")).toMatchObject({ fips: "36" }); // summed into NY
+    expect(resolveReportingArea("NEW YORK")).toMatchObject({ fips: "36" });
+    expect(resolveReportingArea("Commonwealth of Northern Mariana Islands")).toMatchObject({ fips: "69" });
+    expect(resolveReportingArea("Northern Mariana Islands")).toMatchObject({ fips: "69" });
   });
 
   it("excludes census divisions (not a state, but not unknown)", () => {
