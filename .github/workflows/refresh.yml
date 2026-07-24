@@ -1,0 +1,46 @@
+# Weekly data refresh — Monday mornings (the cadence CycloTracker targets).
+# Fetches fresh NNDSS/NORS/Census data, rebuilds the normalized store, and
+# regenerates the coverage report. Trigger manually via "Run workflow" too.
+name: Weekly refresh
+
+on:
+  schedule:
+    - cron: "0 11 * * 1" # Mondays 11:00 UTC (~6–7am US Eastern)
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # The runner is ephemeral (no fetch cache), so this always pulls fresh.
+      - name: Refresh data store + coverage
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+          INGEST_NO_CACHE: "1"
+        run: npm run refresh
+
+      # The SQLite DB is git-ignored. Publish it as a build artifact so a deploy
+      # step (or a follow-up job) can pick it up. In a real deployment you would
+      # instead upload it to object storage or trigger a site rebuild here.
+      - name: Upload data store
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclotracker-db
+          path: data/cyclotracker.db
+          retention-days: 14
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: docs/COVERAGE.md
+          retention-days: 14

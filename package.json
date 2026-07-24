@@ -20,6 +20,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "tsx scripts/coverage-report.ts",
+    "refresh": "npm run db:migrate && npm run db:seed && INGEST_NO_CACHE=1 npm run ingest && npm run coverage",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"

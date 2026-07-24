@@ -30,7 +30,9 @@ export async function cachedFetch(
   await mkdir(CACHE_DIR, { recursive: true });
   const cachePath = join(CACHE_DIR, `${sha1(url + JSON.stringify(headers))}.json`);
 
-  if (existsSync(cachePath)) {
+  // Weekly refresh / cron sets INGEST_NO_CACHE=1 to always fetch fresh.
+  const bypassCache = process.env.INGEST_NO_CACHE === "1";
+  if (!bypassCache && existsSync(cachePath)) {
     try {
       const c = JSON.parse(await readFile(cachePath, "utf8"));
       if (Date.now() - Date.parse(c.fetchedAt) < ttlMs)

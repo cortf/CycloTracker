@@ -240,4 +240,48 @@ metric/year, hover/Tab through symbols, open the data table.
 
 ---
 
-<!-- Add Step 7 here once provenance/polish is built. -->
+## Step 7 — Provenance & Polish ✅
+
+**Goal:** attribution, "last updated", a methodology page, loading/error states, a
+weekly refresh script — plus the Claude-native repo tooling.
+
+**UI:**
+- **Provenance footer** (`components/ProvenanceFooter.tsx`, SSR'd from `/api/sources`):
+  "Data last updated …" + a per-source table (records · cadence · last fetched ·
+  license · link). Every number traces to a source, in the UI.
+- **Methodology page** (`/methodology`): what's counted, the 3-month window, the
+  zero-vs-no-data rule, CSTE comparability caveats, precedence, ACS1 rates (why not
+  PEP), symbol encoding, and a "what we never do" list.
+- **Loading + error states** in the explorer (updating… indicator; error banner that
+  keeps the last good result).
+
+**Refresh (the weekly Monday cadence):**
+- `npm run refresh` = migrate + seed + ingest (fresh) + coverage. `INGEST_NO_CACHE=1`
+  bypasses the fetch cache.
+- `.github/workflows/refresh.yml` — cron `0 11 * * 1` (Mon) + manual dispatch; runs
+  the refresh with the Census key from secrets and uploads the DB + COVERAGE.md.
+
+**Claude-native tooling:**
+- **CLAUDE.md** — architecture + mermaid data-flow, precedence rules, conventions,
+  and a "do NOT do this" list (never impute, never render no-data as zero, never
+  scale by radius, …).
+- **Slash commands** (`.claude/commands/`): `/ingest-source`, `/add-source`,
+  `/coverage-report`, `/verify-step`.
+- **Skill** (`.claude/skills/add-data-source/`): the adapter contract + testing
+  checklist for wiring a new source.
+- **Hook** (`.claude/settings.json` + `hooks/typecheck.sh`): runs `tsc --noEmit`
+  after any `.ts`/`.tsx` edit and feeds failures back.
+
+**Verified:** footer + methodology render (headless screenshots); `next build`
+passes (6 routes incl. `/methodology`); hook exercised; 62 tests + typecheck green.
+
+**Verify:** `npm run dev` → footer + `/methodology`; `npm run refresh`; `npm run build`.
+
+---
+
+## ✅ Project complete — all 7 steps
+
+`Sources → Schema → Ingestion → Reconciliation → API → Map → Polish`. Live 2026
+data flows end-to-end: 3,920 cases in the last 3 months, Ohio/Michigan outbreak
+visible, ID/MS/PA correctly shown as *no data*. Every number is traceable and
+tested; missing is never imputed. Weekly refresh is wired for Monday mornings.

@@ -44,9 +44,33 @@ body {
 }
 
 .app { max-width: 1040px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+.app-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
 .app h1 { font-size: 1.6rem; margin: 0 0 0.25rem; }
+.method-link { color: var(--accent-strong); text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
+.method-link:hover { text-decoration: underline; }
 .app .lede { color: var(--ink-2); margin: 0 0 1.5rem; }
 .app .lede i { font-style: italic; }
+.updating { color: var(--muted); font-style: italic; }
+.error-banner {
+  margin: 0 0 0.75rem; padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.9rem;
+  color: #7a1f1f; background: #fbeaea; border: 1px solid #f2caca;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .error-banner { color: #f3c3c3; background: #2a1717; border-color: #4a2020; }
+}
+
+/* Provenance footer */
+.provenance { margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--hairline); }
+.provenance-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; color: var(--ink-2); font-size: 0.9rem; }
+.provenance-head strong { color: var(--ink); }
+.provenance-head a { color: var(--accent-strong); }
+.provenance-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.82rem; }
+.provenance-table th, .provenance-table td { text-align: left; padding: 0.3rem 0.6rem; border-bottom: 1px solid var(--hairline); font-weight: 400; }
+.provenance-table thead th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.provenance-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.provenance-table a { color: var(--accent-strong); }
+.provenance-table .lic { color: var(--muted); }
+.provenance-note { color: var(--muted); font-size: 0.78rem; margin-top: 0.75rem; max-width: 70ch; }
 
 /* Controls */
 .controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: flex-end; margin-bottom: 0.75rem; }
@@ -116,6 +140,16 @@ details.table-details > summary { cursor: pointer; color: var(--accent-strong); 
 .data-table th { color: var(--muted); font-weight: 600; }
 .data-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .data-table .cls-no-data { color: var(--muted); }
+
+/* Methodology doc */
+.doc { max-width: 780px; }
+.doc h1 { font-size: 1.6rem; margin: 0 0 0.75rem; }
+.doc h2 { font-size: 1.12rem; margin: 1.9rem 0 0.4rem; }
+.doc p, .doc li { color: var(--ink-2); }
+.doc a { color: var(--accent-strong); }
+.doc code { background: var(--hairline); padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.9em; }
+.doc .back { display: inline-block; margin-bottom: 1rem; text-decoration: none; }
+.doc .provenance-table { margin-top: 1rem; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

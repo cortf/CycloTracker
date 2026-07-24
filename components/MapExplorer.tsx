@@ -7,6 +7,7 @@ import { makeRadiusScale, niceLegendValues } from "../lib/map-utils";
 import { DataTable } from "./DataTable";
 import { Legend } from "./Legend";
 import { ProportionalSymbolMap, type ActiveAnchor } from "./ProportionalSymbolMap";
+import { ProvenanceFooter, type ProvenanceSource } from "./ProvenanceFooter";
 import { Tooltip } from "./Tooltip";
 
 type Metric = "count" | "rate";
@@ -15,13 +16,16 @@ interface Props {
   geo: StateGeo[];
   initialData: CasesData;
   years: number[];
+  sources: ProvenanceSource[];
+  lastUpdated: string | null;
 }
 
-export function MapExplorer({ geo, initialData, years }: Props) {
+export function MapExplorer({ geo, initialData, years, sources, lastUpdated }: Props) {
   const [metric, setMetric] = useState<Metric>("count");
   const [year, setYear] = useState<number | null>(null); // null = last 3 months
   const [data, setData] = useState<CasesData>(initialData);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState<ActiveAnchor | null>(null);
   const firstRender = useRef(true);
 
@@ -35,10 +39,17 @@ export function MapExplorer({ geo, initialData, years }: Props) {
     if (year !== null) params.set("year", String(year));
     let cancelled = false;
     setLoading(true);
+    setError(null);
     fetch(`/api/cases?${params}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d: CasesData) => {
         if (!cancelled) setData(d);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Couldn’t load that view — showing the last result.");
       })
       .finally(() => !cancelled && setLoading(false));
     return () => {
@@ -66,7 +77,10 @@ export function MapExplorer({ geo, initialData, years }: Props) {
 
   return (
     <div className="app">
-      <h1>CycloTracker</h1>
+      <div className="app-head">
+        <h1>CycloTracker</h1>
+        <a className="method-link" href="/methodology">Methodology</a>
+      </div>
       <p className="lede">
         Reported <i>Cyclospora cayetanensis</i> infections by U.S. state. Circle area is proportional to the
         value; hatched states have no data (not the same as zero).
@@ -100,7 +114,9 @@ export function MapExplorer({ geo, initialData, years }: Props) {
         {" · "}<span className="chip">{data.national.statesWithData} reporting</span>
         {" · "}<span className="chip">{data.national.statesZero} zero</span>
         {" · "}<span className="chip">{data.national.statesNoData} no data</span>
+        {loading && <span className="updating"> · updating…</span>}
       </p>
+      {error && <p className="error-banner" role="alert">{error}</p>}
 
       <figure className="map-figure">
         <ProportionalSymbolMap geo={geo} byFips={byFips} radius={radius} activeFips={active?.fips ?? null} onActivate={setActive} />
@@ -113,6 +129,8 @@ export function MapExplorer({ geo, initialData, years }: Props) {
         <summary>Show data table ({data.states.length} states)</summary>
         <DataTable states={data.states} caption={tableCaption} />
       </details>
+
+      <ProvenanceFooter sources={sources} lastUpdated={lastUpdated} />
     </div>
   );
 }
