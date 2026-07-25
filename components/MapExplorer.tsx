@@ -94,7 +94,7 @@ export function MapExplorer({
         </a>
       </div>
       <p className="lede">
-        Reported <i>Cyclospora cayetanensis</i> infections by U.S. state. Circle
+        Reported <i>Cyclospora cayetanensis</i> infections 💩 by U.S. state. Circle
         area is proportional to the value; hatched states have no data.
       </p>
 
