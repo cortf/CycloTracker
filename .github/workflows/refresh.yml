@@ -19,7 +19,12 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      # Use `npm install`, not `npm ci`: the toolchain (Next 16 / rolldown) has
+      # platform-specific optional deps (`@emnapi/*`) whose lockfile entries
+      # differ between a macOS dev machine and this Linux runner, so a
+      # cross-platform lock makes `npm ci` fail. `npm install` reconciles them
+      # (and matches how Vercel installs during the deploy build).
+      - run: npm install --no-audit --no-fund
 
       # The runner is ephemeral (no fetch cache), so this always pulls fresh.
       - name: Refresh data store + coverage
