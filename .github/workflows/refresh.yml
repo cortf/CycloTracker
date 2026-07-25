@@ -44,3 +44,18 @@ jobs:
           name: coverage-report
           path: docs/COVERAGE.md
           retention-days: 14
+
+      # Publish: poke Vercel to rebuild. Vercel's own build re-ingests fresh data
+      # (see the "vercel-build" script) and redeploys the static site. Set the
+      # VERCEL_DEPLOY_HOOK_URL secret to a Deploy Hook URL from Vercel → Settings
+      # → Git → Deploy Hooks. Skipped quietly if the secret isn't configured.
+      - name: Trigger Vercel rebuild
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$HOOK" ]; then
+            curl -fsS -X POST "$HOOK"
+            echo "Triggered Vercel rebuild."
+          else
+            echo "VERCEL_DEPLOY_HOOK_URL not set — skipping rebuild trigger."
+          fi

@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { fipsParamSchema } from "../../../../lib/api/schemas";
 import { buildStateDetail } from "../../../../lib/api/state-detail";
+import { getStates } from "../../../../lib/queries";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+// One prebuilt JSON per known state, served from the CDN. Unknown fips → 404.
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return getStates().map((s) => ({ fips: s.fips }));
+}
 
 export async function GET(_request: Request, { params }: { params: Promise<{ fips: string }> }) {
   const { fips } = await params;

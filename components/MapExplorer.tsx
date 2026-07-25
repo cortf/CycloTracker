@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { fmtCount } from "../lib/format";
+import { casesKey } from "../lib/map-types";
 import type { CasesData, StateEntry, StateGeo } from "../lib/map-types";
 import { makeRadiusScale, niceLegendValues } from "../lib/map-utils";
 import { DataTable } from "./DataTable";
@@ -18,7 +19,8 @@ type Metric = "count" | "rate";
 
 interface Props {
   geo: StateGeo[];
-  initialData: CasesData;
+  /** Every metric × period view, precomputed at build time (keyed by casesKey). */
+  dataByKey: Record<string, CasesData>;
   years: number[];
   sources: ProvenanceSource[];
   lastUpdated: string | null;
@@ -26,47 +28,19 @@ interface Props {
 
 export function MapExplorer({
   geo,
-  initialData,
+  dataByKey,
   years,
   sources,
   lastUpdated,
 }: Props) {
   const [metric, setMetric] = useState<Metric>("count");
   const [year, setYear] = useState<number | null>(null); // null = last 3 months
-  const [data, setData] = useState<CasesData>(initialData);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState<ActiveAnchor | null>(null);
-  const firstRender = useRef(true);
 
-  // Refetch when the metric or year changes (initialData already covers the default).
-  useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    const params = new URLSearchParams({ metric });
-    if (year !== null) params.set("year", String(year));
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetch(`/api/cases?${params}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((d: CasesData) => {
-        if (!cancelled) setData(d);
-      })
-      .catch(() => {
-        if (!cancelled)
-          setError("Couldn’t load that view — showing the last result.");
-      })
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [metric, year]);
+  // Every view is precomputed at build time, so switching metric/period is an
+  // instant local lookup — no fetch, no server, nothing to bill under load.
+  const data =
+    dataByKey[casesKey(metric, year)] ?? dataByKey[casesKey("count", null)]!;
 
   const periodOptions = useMemo<DropdownOption[]>(
     () => [
@@ -155,7 +129,7 @@ export function MapExplorer({
         </div>
       </div>
 
-      <p className="summary" data-loading={loading} aria-live="polite">
+      <p className="summary" aria-live="polite">
         <strong>{fmtCount(data.national.total)}</strong> cases, {scopeLabel}
         {" · "}
         <span className="chip">{data.national.statesWithData} reporting</span>
@@ -163,13 +137,7 @@ export function MapExplorer({
         <span className="chip">{data.national.statesZero} zero</span>
         {" · "}
         <span className="chip">{data.national.statesNoData} no data</span>
-        {loading && <span className="updating"> · updating…</span>}
       </p>
-      {error && (
-        <p className="error-banner" role="alert">
-          {error}
-        </p>
-      )}
 
       <figure className="map-figure">
         <ProportionalSymbolMap

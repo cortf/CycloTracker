@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { buildSourcesResponse } from "../../../lib/api/sources";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+// Prebuilt at build time and served from the CDN — no per-request DB reads.
+export const dynamic = "force-static";
 
 export function GET() {
   return NextResponse.json(buildSourcesResponse());

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { buildSourcesResponse } from "../../lib/api/sources";
 
 export const metadata: Metadata = { title: "Methodology · CycloTracker" };
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static"; // prebuilt at build; refreshed on redeploy
 
 export default function Methodology() {
   const sources = buildSourcesResponse().sources;

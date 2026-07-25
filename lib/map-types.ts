@@ -15,3 +15,8 @@ export interface StateGeo {
 
 export const MAP_WIDTH = 975;
 export const MAP_HEIGHT = 610;
+
+/** Stable key for a (metric, period) view. `year === null` = the default window. */
+export function casesKey(metric: "count" | "rate", year: number | null): string {
+  return `${metric}:${year ?? "latest"}`;
+}

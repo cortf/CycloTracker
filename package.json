@@ -23,9 +23,11 @@
     "refresh": "npm run db:migrate && npm run db:seed && INGEST_NO_CACHE=1 npm run ingest && npm run coverage",
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "npm run db:migrate && npm run db:seed && INGEST_NO_CACHE=1 npm run ingest && next build",
     "start": "next start"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "better-sqlite3": "^11.8.1",
     "d3-force": "^3.0.0",
     "d3-geo": "^3.1.1",
