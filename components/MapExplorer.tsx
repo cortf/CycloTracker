@@ -105,7 +105,16 @@ export function MapExplorer({
   return (
     <div className="app">
       <div className="app-head">
-        <h1>CycloTracker</h1>
+        <div className="brand">
+          <img
+            className="brand-mark"
+            src="/logo.svg"
+            alt=""
+            width={52}
+            height={52}
+          />
+          <h1>CycloTracker</h1>
+        </div>
         <a className="method-link" href="/methodology">
           Methodology
         </a>
