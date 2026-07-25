@@ -9,8 +9,8 @@
   --border: rgba(11, 11, 11, 0.1);
   --accent: #2a78d6; /* symbol fill (sequential blue) */
   --accent-strong: #184f95; /* symbol stroke */
-  --land: #eae9e3; /* state fill */
-  --land-stroke: #fcfcfb; /* state borders */
+  --land: #f2f1ec; /* state fill */
+  --land-stroke: #ffffff; /* state borders */
   --nodata-line: #b7b5ab; /* no-data hatch (tone-on-tone grey) */
   --focus: #eb6834; /* focus ring (accent-2 orange) */
   color-scheme: light;
@@ -26,8 +26,8 @@
     --border: rgba(255, 255, 255, 0.1);
     --accent: #3987e5;
     --accent-strong: #86b6ef;
-    --land: #26261f;
-    --land-stroke: #1a1a19;
+    --land: #7a7a73;
+    --land-stroke: #ffffff;
     --nodata-line: #4a4944;
     --focus: #eb6834;
     color-scheme: dark;
