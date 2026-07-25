@@ -64,7 +64,9 @@ body {
 .provenance-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; color: var(--ink-2); font-size: 0.9rem; }
 .provenance-head strong { color: var(--ink); }
 .provenance-head a { color: var(--accent-strong); }
-.provenance-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.82rem; }
+/* Scroll wrapper so wide tables scroll inside their box, not the whole page. */
+.table-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.provenance-table { width: 100%; min-width: 30rem; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.82rem; }
 .provenance-table th, .provenance-table td { text-align: left; padding: 0.3rem 0.6rem; border-bottom: 1px solid var(--hairline); font-weight: 400; }
 .provenance-table thead th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
 .provenance-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -83,11 +85,43 @@ body {
 }
 .seg button + button { border-left: 1px solid var(--border); }
 .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
-select {
-  appearance: none; font: inherit; font-size: 0.9rem; color: var(--ink);
+/* Custom dropdown (accessible <select> replacement) */
+.dropdown { position: relative; }
+.dropdown-button {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  min-width: 11rem; width: 100%; font: inherit; font-size: 0.95rem; color: var(--ink);
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-  padding: 0.4rem 2rem 0.4rem 0.7rem; cursor: pointer;
+  padding: 0.45rem 0.7rem; cursor: pointer; text-align: left;
 }
+.dropdown-button:hover { border-color: var(--accent); }
+.dropdown-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.dropdown-button[aria-expanded="true"] { border-color: var(--accent); }
+.dropdown-caret {
+  width: 0; height: 0; flex: none;
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+  border-top: 5px solid var(--muted);
+}
+.dropdown-list {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 30; margin: 0;
+  min-width: 100%; max-height: 15rem; overflow-y: auto; padding: 0.25rem;
+  list-style: none; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.18); outline: none;
+}
+.dropdown-option {
+  padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.95rem; color: var(--ink);
+  cursor: pointer; white-space: nowrap;
+}
+.dropdown-option[data-active="true"] { background: var(--accent); color: #fff; }
+.dropdown-option[aria-selected="true"] { font-weight: 600; }
+
+/* Larger, tap-friendly dropdown text on phones. */
+@media (max-width: 640px) {
+  .dropdown-button { font-size: 1.05rem; padding: 0.6rem 0.8rem; }
+  .dropdown-list { max-height: 60vh; }
+  .dropdown-option { font-size: 1.05rem; padding: 0.65rem 0.75rem; }
+}
+.dropdown-option[aria-selected="true"]::after { content: " ✓"; color: var(--accent); }
+.dropdown-option[data-active="true"][aria-selected="true"]::after { color: #fff; }
 
 /* Summary line */
 .summary { color: var(--ink-2); font-size: 0.92rem; margin: 0.25rem 0 0.75rem; }
@@ -97,13 +131,34 @@ select {
 
 /* Map figure */
 .map-figure { margin: 0; position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem; }
-.map-svg { width: 100%; height: auto; display: block; }
-.state-path { fill: var(--land); stroke: var(--land-stroke); stroke-width: 0.75; }
+.map-stage { position: relative; }
+.map-svg { width: 100%; height: auto; display: block; touch-action: none; cursor: grab; }
+.map-svg[data-zoomed="true"] { cursor: grab; }
+.map-svg[data-panning="true"] { cursor: grabbing; }
+/* Keep outlines crisp at every zoom level instead of scaling stroke width. */
+.state-path { fill: var(--land); stroke: var(--land-stroke); stroke-width: 0.75; vector-effect: non-scaling-stroke; }
 .state-path--nodata { fill: url(#nodata-hatch); }
 .hatch-bg { fill: var(--land); }
 .hatch-line { stroke: var(--nodata-line); stroke-width: 1.4; }
-.leader { stroke: var(--accent-strong); stroke-width: 0.75; opacity: 0.5; }
-.symbol { fill: var(--accent); fill-opacity: 0.72; stroke: var(--accent-strong); stroke-width: 1; cursor: pointer; outline: none; }
+.leader { stroke: var(--accent-strong); stroke-width: 0.75; opacity: 0.5; vector-effect: non-scaling-stroke; }
+.symbol { fill: var(--accent); fill-opacity: 0.72; stroke: var(--accent-strong); stroke-width: 1; cursor: pointer; outline: none; vector-effect: non-scaling-stroke; }
+
+/* Zoom controls (overlay, top-right of the map) */
+.zoom-controls {
+  position: absolute; top: 0.75rem; right: 0.75rem; z-index: 5;
+  display: flex; flex-direction: column; gap: 0.35rem;
+}
+.zoom-controls button {
+  appearance: none; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2rem; height: 2rem; padding: 0 0.5rem; font: inherit; line-height: 1;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.zoom-controls button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-strong); }
+.zoom-controls button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.zoom-controls button:disabled { opacity: 0.4; cursor: default; }
+.zoom-controls button span { font-size: 1.15rem; }
+.zoom-controls .zoom-reset { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
 .symbol:hover, .symbol[data-active="true"] { fill-opacity: 0.9; }
 .symbol:focus-visible { stroke: var(--focus); stroke-width: 2.5; }
 .symbol-hit { fill: transparent; stroke: none; cursor: pointer; outline: none; }

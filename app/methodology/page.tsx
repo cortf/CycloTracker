@@ -82,8 +82,9 @@ export default function Methodology() {
       </ul>
 
       <h2>Sources</h2>
-      <table className="provenance-table">
-        <thead>
+      <div className="table-scroll">
+        <table className="provenance-table">
+          <thead>
           <tr>
             <th scope="col">Source</th>
             <th scope="col">Role</th>
@@ -101,7 +102,8 @@ export default function Methodology() {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </main>
   );
 }
